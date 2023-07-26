@@ -4,6 +4,7 @@ const log = require('@power-cli/log');
 const { spinnerStart } = require('@power-cli/utils');
 const CloudBuild = require('@power-cli/cloudbuild');
 const pkg = require(`${process.cwd()}/package.json`);
+const childProcess = require('child_process')
 
 const path = require('path');
 const semver = require('semver');
@@ -122,6 +123,9 @@ class Git {
     await this.pushRemoteRepo(this.branch);
   }
   async publish() {
+   if (this.isComponent()) {
+    log.info('组件发布开始')
+   } else {
     await this.preparePublish();
     const cloudBuild = new CloudBuild(this, {
       type: this.gitPublish,
@@ -130,6 +134,7 @@ class Git {
     await cloudBuild.prepare();
     await cloudBuild.init();
     await cloudBuild.build();
+   }
   }
  // -------- 主流程结束 ----------
 
@@ -463,10 +468,32 @@ pnpm-debug.log*
     }
   }
   async checkComponent() {
+    // 如果存在.componentrc文件则是组件
     let componentFile = this.isComponent();
+    if (!componentFile) {
+      return 
+    }
+    log.info('开始检查组件build结果, 执行buid命令')
+    if (!this.buildCmd) {
+      this.buildCmd = 'npm run build'
+    }
+    childProcess.execSync(this.buildCmd, {
+      cwd: this.dir
+    })
+    const buildPath = path.resolve(this.dir, componentFile.buildPath)
+    if (!fs.existsSync(buildPath)) {
+      throw new Error(`构建结果：${buildPath}不存在`)
+    }
+    const pkg = require(path.resolve(this.dir, 'package.json'))
+    if (!pkg.files || !pkg.files.includes(componentFile.buildPath)) {
+      throw new Error(`package.json中的files属性未添加构建结果目录: [${componentFile.buildPath}],请在package.json手动添加`)
+    }
+    log.success('build的结果检查通过')
+    
   }
   isComponent() {
     const componentFilePath = path.resolve(this.dir, COMPONENT_FILE);
+    return fs.existsSync(componentFilePath,) && JSON.parse(fs.readFileSync(componentFilePath, 'utf-8'))
   }
   // 检查仓库，如果没有就创建
   async checkRepo() {

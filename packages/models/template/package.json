@@ -1,0 +1,14 @@
+{
+  "name": "@power-cli/template",
+  "version": "1.0.29",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "__npminstall_done": true,
+  "_from": "imooc-cli-dev-components@1.0.7",
+  "_resolved": "https://registry.npmmirror.com/imooc-cli-dev-components/-/imooc-cli-dev-components-1.0.7.tgz"
+}
