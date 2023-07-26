@@ -181,8 +181,8 @@ class InitCommand extends Command {
     this.templateNpm = new Package({
       targetPath,
       storePath,
-      packageName: this.projectInfo?.npmName,
-      packageVersion: this.projectInfo?.projectVersion
+      packageName: this.templateInfo?.npmName,
+      packageVersion: this.templateInfo?.projectVersion
     })
     log.verbose('templateNpm', this.templateNpm)
     if (await this.templateNpm.exists()) {

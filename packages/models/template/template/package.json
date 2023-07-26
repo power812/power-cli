@@ -23,7 +23,7 @@
     "hooks": {
       "pre-commit": "npm run lint && npm run test"
     }
-  },  
+  },
   "main": "dist/lego-bricks.umd.js",
   "module": "dist/lego-bricks.esm.js",
   "files": [
@@ -66,11 +66,12 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.38.5",
     "rollup-plugin-css-only": "^3.1.0",
-    "rollup-plugin-typescript2": "^0.29.0",
+    "rollup-plugin-typescript2": "^0.35.0",
     "rollup-plugin-vue": "^6.0.0",
     "typescript": "~3.9.3",
     "vue": "^3.0.0",
-    "vue-jest": "^5.0.0-0"
+    "vue-jest": "^5.0.0-0",
+    "webpack-env": "^0.8.0"
   },
   "peerDependencies": {
     "vue": "^3.0.0"
