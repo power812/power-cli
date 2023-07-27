@@ -1,6 +1,6 @@
 {
   "name": "@power-cli/git",
-  "version": "1.0.30",
+  "version": "1.0.32",
   "description": "git操作创建类",
   "keywords": [
     "git",
