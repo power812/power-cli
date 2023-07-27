@@ -1,9 +1,4 @@
 
-.l-image-component[data-v-1e970aa2] {
-  max-width: 100%;
-  position: relative !important;
-}
-
 h2.l-text-component[data-v-6bf95b7a], p.l-text-component[data-v-6bf95b7a] {
   margin-bottom: 0;
 }
@@ -14,5 +9,10 @@ button.l-text-component[data-v-6bf95b7a] {
 .l-text-component[data-v-6bf95b7a] {
   box-sizing: border-box;
   white-space: pre-wrap;
+  position: relative !important;
+}
+
+.l-image-component[data-v-1e970aa2] {
+  max-width: 100%;
   position: relative !important;
 }

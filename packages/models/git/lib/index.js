@@ -123,8 +123,10 @@ class Git {
     await this.pushRemoteRepo(this.branch);
   }
   async publish() {
+    // 组件发布
    if (this.isComponent()) {
     log.info('组件发布开始')
+    await this.saveComponentToDB()
    } else {
     await this.preparePublish();
     const cloudBuild = new CloudBuild(this, {
@@ -137,7 +139,11 @@ class Git {
    }
   }
  // -------- 主流程结束 ----------
+  async saveComponentToDB() {
+    // 将组件信息上传数据库
+    // 将组件多预览页面上传至oss
 
+  }
   async preparePublish() {
     log.info('开始进行云构建前代码检查');
     // 用户传进来的自定义打包命令
