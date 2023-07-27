@@ -14,6 +14,7 @@ const inquirer = require('inquirer');
 const terminalLink = require('terminal-link');
 const Gitee = require('./Gitee');
 const Github = require('./Github');
+const ComponentRequest = require('./ComponentReques')
 
 const DEFAULT_CLI_HOME = '.power-cli';
 const GIT_ROOT_DIR = '.git';
@@ -127,6 +128,7 @@ class Git {
    if (this.isComponent()) {
     log.info('组件发布开始')
     await this.saveComponentToDB()
+    // await this.uploadComponentToNpm()
    } else {
     await this.preparePublish();
     const cloudBuild = new CloudBuild(this, {
@@ -141,8 +143,43 @@ class Git {
  // -------- 主流程结束 ----------
   async saveComponentToDB() {
     // 将组件信息上传数据库
-    // 将组件多预览页面上传至oss
+    log.info('上传组件信息到mysql数据库')
 
+    const componentFile = this.isComponent()
+    let componentExamplePath = path.resolve(this.dir, componentFile.examplePath)
+    let dirs = fs.readdirSync(componentExamplePath)
+    // 多组件情况
+    if (dirs.includes('dist')) {
+      componentExamplePath = path.resolve(componentExamplePath, 'dist')
+      dirs = fs.readdirSync(componentExamplePath)
+      componentFile.examplePath = `${componentFile.examplePath}/dist`
+    }
+    dirs = dirs.filter(dir => dir.match(/^index(\d)*\.html$/));
+    componentFile.exampleList = dirs
+    componentFile.exampleRealPath = componentExamplePath
+    // 将组件多预览页面上传至mysql数据库
+    const data = await ComponentRequest.createComponent({
+      component: componentFile,
+      git: {
+        type: this.gitServer.type,
+        remote: this.remote,
+        version: this.version,
+        branch: this.branch,
+        login: this.login,
+        owner: this.owner,
+        repo: this.repo,
+
+      }
+    })
+    // 将组件上传至OSS
+
+  }
+  async uploadComponentToNpm() {
+    log.info('开始发布npm')
+    childProcess.execSync('npm publish', {
+      cwd: this.dir,
+    })
+    log.info('npm包发布成功')
   }
   async preparePublish() {
     log.info('开始进行云构建前代码检查');
