@@ -22,6 +22,7 @@ class PublishCommand extends Command {
     await git.commit();
     // power publish git 只推送到git仓库
     if (this._argv[0] !== 'git') {
+      // 云构建和云发布
       await git.publish();
     }
 

@@ -70,6 +70,7 @@ class InitCommand extends Command {
   }
   async createComponentFile() {
     if (this.templateInfo.tag.includes(TYPE_COMPONENT)) {
+      this.projectInfo.name = this.projectInfo.projectName
       const componentData = {
         ...this.projectInfo,
         buildPath: this.templateInfo.buildPath,
@@ -335,6 +336,7 @@ class InitCommand extends Command {
       });
       projectInfo.description = descriptionPrompt.componentDescription
     }
+    
 
 
     

@@ -4,8 +4,8 @@ const log = require('@power-cli/log');
 const { spinnerStart } = require('@power-cli/utils');
 const CloudBuild = require('@power-cli/cloudbuild');
 const pkg = require(`${process.cwd()}/package.json`);
-const childProcess = require('child_process')
-const Listr = require ('listr')
+const childProcess = require('child_process');
+const Listr = require('listr');
 const { Observable } = require('rxjs');
 
 const path = require('path');
@@ -16,7 +16,7 @@ const inquirer = require('inquirer');
 const terminalLink = require('terminal-link');
 const Gitee = require('./Gitee');
 const Github = require('./Github');
-const ComponentRequest = require('./ComponentReques')
+const ComponentRequest = require('./ComponentReques');
 
 const DEFAULT_CLI_HOME = '.power-cli';
 const GIT_ROOT_DIR = '.git';
@@ -127,114 +127,117 @@ class Git {
   }
   async publish() {
     // 组件发布
-   let ret = false
-   if (this.isComponent()) {
-    log.info('组件发布开始')
+    let ret = false;
+    if (this.isComponent()) {
+      log.info('组件发布开始');
 
-    ret = await this.saveComponentToDB()
- 
-   } else {
-    await this.preparePublish();
-    const cloudBuild = new CloudBuild(this, {
-      type: this.gitPublish,
-      prod: this.prod,
-    });
-    await cloudBuild.prepare();
-    await cloudBuild.init();
-    await cloudBuild.build();
-   }
-   if (this.prod && ret) {
-    await this.uploadComponentToNpm();
-    this.runCreateTagTask();
+      ret = await this.saveComponentToDB();
+    } else {
+      await this.preparePublish();
+      const cloudBuild = new CloudBuild(this, {
+        type: this.gitPublish,
+        prod: this.prod,
+      });
+      await cloudBuild.prepare();
+      await cloudBuild.init();
+      await cloudBuild.build();
+    }
+    if (this.prod && ret) {
+      await this.uploadComponentToNpm();
+      this.runCreateTagTask();
+    }
   }
-  }
- // -------- 主流程结束 ----------
- // 自动生成远程仓库分支
+  // -------- 主流程结束 ----------
+  mergeBranchT;
+  // 自动生成远程仓库分支
   runCreateTagTask() {
-    const delay = fn => setTimeout(fn, 1000);
+    const delay = (fn) => setTimeout(fn, 1000);
     const tasks = new Listr([
       {
         title: '自动生成远程仓库Tag',
-        task: () => new Listr([{
-          title: '创建Tag',
-          task: () => {
-            return new Observable(o => {
-              o.next('正在创建Tag');
-              delay(() => {
-                this.checkTag().then(() => {
-                  o.complete();
-                });
-              });
-            });
-          },
-        },
-          {
-            title: '切换分支到master',
-            task: () => {
-              return new Observable(o => {
-                o.next('正在切换master分支');
-                delay(() => {
-                  this.checkoutBranch('master').then(() => {
-                    o.complete();
+        task: () =>
+          new Listr([
+            {
+              title: '创建Tag',
+              task: () => {
+                return new Observable((o) => {
+                  o.next('正在创建Tag');
+                  delay(() => {
+                    this.checkTag().then(() => {
+                      o.complete();
+                    });
                   });
                 });
-              });
+              },
             },
-          },
-          {
-            title: '将开发分支代码合并到master',
-            task: () => {
-              return new Observable(o => {
-                o.next('正在合并到master分支');
-                delay(() => {
-                  this.mergeBranchToMaster('master').then(() => {
-                    o.complete();
+            {
+              title: '切换分支到master',
+              task: () => {
+                return new Observable((o) => {
+                  o.next('正在切换master分支');
+                  delay(() => {
+                    this.checkoutBranch('master').then(() => {
+                      o.complete();
+                    });
                   });
                 });
-              });
+              },
             },
-          },
-          {
-            title: '将代码推送到远程master',
-            task: () => {
-              return new Observable(o => {
-                o.next('正在推送master分支');
-                delay(() => {
-                  this.pushRemoteRepo('master').then(() => {
-                    o.complete();
+            {
+              title: '将开发分支代码合并到master',
+              task: () => {
+                return new Observable((o) => {
+                  o.next('正在合并到master分支');
+                  delay(() => {
+                    this.mergeBranchToMaster('master').then(() => {
+                      o.complete();
+                    });
                   });
                 });
-              });
+              },
             },
-          },
-          {
-            title: '删除本地开发分支',
-            task: () => {
-              return new Observable(o => {
-                o.next('正在删除本地开发分支');
-                delay(() => {
-                  this.deleteLocalBranch().then(() => {
-                    o.complete();
+            {
+              title: '将代码推送到远程master',
+              task: () => {
+                return new Observable((o) => {
+                  o.next('正在推送master分支');
+                  delay(() => {
+                    this.pushRemoteRepo('master').then(() => {
+                      o.complete();
+                    });
                   });
                 });
-              });
+              },
             },
-          },
-          {
-            title: '删除远程开发分支',
-            task: () => {
-              return new Observable(o => {
-                o.next('正在删除远程开发分支');
-                delay(() => {
-                  this.deleteRemoteBranch().then(() => {
-                    o.complete();
+            {
+              title: '删除本地开发分支',
+              task: () => {
+                return new Observable((o) => {
+                  o.next('正在删除本地开发分支');
+                  delay(() => {
+                    this.deleteLocalBranch().then(() => {
+                      o.complete();
+                    });
                   });
                 });
-              });
+              },
             },
-          },
-        ]),
-      }]);
+            {
+              title: '删除远程开发分支',
+              task: () => {
+                return new Observable((o) => {
+                  o.next('正在删除远程开发分支');
+                  delay(() => {
+                    this.deleteRemoteBranch().then(() => {
+                      o.complete();
+                    });
+                  });
+                });
+              },
+            },
+          ]),
+      },
+    ]);
 
     tasks.run();
   }
@@ -276,20 +279,23 @@ class Git {
 
   async saveComponentToDB() {
     // 将组件信息上传数据库
-    log.info('上传组件信息到mysql数据库')
+    log.info('上传组件信息到mysql数据库');
 
-    const componentFile = this.isComponent()
-    let componentExamplePath = path.resolve(this.dir, componentFile.examplePath)
-    let dirs = fs.readdirSync(componentExamplePath)
+    const componentFile = this.isComponent();
+    let componentExamplePath = path.resolve(
+      this.dir,
+      componentFile.examplePath
+    );
+    let dirs = fs.readdirSync(componentExamplePath);
     // 多组件情况
     if (dirs.includes('dist')) {
-      componentExamplePath = path.resolve(componentExamplePath, 'dist')
-      dirs = fs.readdirSync(componentExamplePath)
-      componentFile.examplePath = `${componentFile.examplePath}/dist`
+      componentExamplePath = path.resolve(componentExamplePath, 'dist');
+      dirs = fs.readdirSync(componentExamplePath);
+      componentFile.examplePath = `${componentFile.examplePath}/dist`;
     }
-    dirs = dirs.filter(dir => dir.match(/^index(\d)*\.html$/));
-    componentFile.exampleList = dirs
-    componentFile.exampleRealPath = componentExamplePath
+    dirs = dirs.filter((dir) => dir.match(/^index(\d)*\.html$/));
+    componentFile.exampleList = dirs;
+    componentFile.exampleRealPath = componentExamplePath;
     // 将组件多预览页面上传至mysql数据库
     const data = await ComponentRequest.createComponent({
       component: componentFile,
@@ -301,22 +307,20 @@ class Git {
         login: this.login,
         owner: this.owner,
         repo: this.repo,
-
-      }
-    })
+      },
+    });
     if (data.code === 1) {
-      return true
+      return true;
     }
-    return false
+    return false;
     // 将组件上传至OSS
-
   }
   async uploadComponentToNpm() {
-    log.info('开始发布npm')
+    log.info('开始发布npm');
     // childProcess.execSync('npm publish', {
     //   cwd: this.dir,
     // })
-    log.info('npm包发布成功')
+    log.info('npm包发布成功');
   }
   async preparePublish() {
     log.info('开始进行云构建前代码检查');
@@ -651,29 +655,33 @@ pnpm-debug.log*
     // 如果存在.componentrc文件则是组件
     let componentFile = this.isComponent();
     if (!componentFile) {
-      return 
+      return;
     }
-    log.info('开始检查组件build结果, 执行buid命令')
+    log.info('开始检查组件build结果, 执行buid命令');
     if (!this.buildCmd) {
-      this.buildCmd = 'npm run build'
+      this.buildCmd = 'npm run build';
     }
     childProcess.execSync(this.buildCmd, {
-      cwd: this.dir
-    })
-    const buildPath = path.resolve(this.dir, componentFile.buildPath)
+      cwd: this.dir,
+    });
+    const buildPath = path.resolve(this.dir, componentFile.buildPath);
     if (!fs.existsSync(buildPath)) {
-      throw new Error(`构建结果：${buildPath}不存在`)
+      throw new Error(`构建结果：${buildPath}不存在`);
     }
-    const pkg = require(path.resolve(this.dir, 'package.json'))
+    const pkg = require(path.resolve(this.dir, 'package.json'));
     if (!pkg.files || !pkg.files.includes(componentFile.buildPath)) {
-      throw new Error(`package.json中的files属性未添加构建结果目录: [${componentFile.buildPath}],请在package.json手动添加`)
+      throw new Error(
+        `package.json中的files属性未添加构建结果目录: [${componentFile.buildPath}],请在package.json手动添加`
+      );
     }
-    log.success('build的结果检查通过')
-    
+    log.success('build的结果检查通过');
   }
   isComponent() {
     const componentFilePath = path.resolve(this.dir, COMPONENT_FILE);
-    return fs.existsSync(componentFilePath,) && JSON.parse(fs.readFileSync(componentFilePath, 'utf-8'))
+    return (
+      fs.existsSync(componentFilePath) &&
+      JSON.parse(fs.readFileSync(componentFilePath, 'utf-8'))
+    );
   }
   // 检查仓库，如果没有就创建
   async checkRepo() {
