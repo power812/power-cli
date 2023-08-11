@@ -2,6 +2,7 @@
 const simpleGit = require('simple-git');
 const log = require('@power-cli/log');
 const { spinnerStart } = require('@power-cli/utils');
+const request = require('@power-cli/request');
 const CloudBuild = require('@power-cli/cloudbuild');
 const pkg = require(`${process.cwd()}/package.json`);
 const childProcess = require('child_process');
@@ -140,7 +141,10 @@ class Git {
       });
       await cloudBuild.prepare();
       await cloudBuild.init();
-      await cloudBuild.build();
+      ret = await cloudBuild.build();
+      if (ret) {
+        await this.uploadTemplate();
+      }
     }
     if (this.prod && ret) {
       await this.uploadComponentToNpm();
@@ -148,7 +152,54 @@ class Git {
     }
   }
   // -------- 主流程结束 ----------
-  mergeBranchT;
+  async uploadTemplate() {
+    this.sshPath = '/home/power/nginx/html/poster-web';
+    this.sshUser = 'power';
+    this.sshIp = '120.78.65.45';
+    if (this.sshPath) {
+      log.info('开始下载模板文件');
+      const ossTemplateFile = await request({
+        url: '/oss/get',
+        params: {
+          name: this.name,
+          type: this.prod ? 'prod' : 'dev',
+          file: 'index.html',
+        },
+      });
+      console.log(ossTemplateFile);
+      if (ossTemplateFile.code === 1) {
+        // ossTemplateFile = ossTemplateFile.data;
+        log.verbose('模板文件url:', ossTemplateFile.url);
+        const response = await request({
+          url: ossTemplateFile.data?.url,
+        });
+        if (response) {
+          const ossTempDir = path.resolve(
+            this.homePath,
+            '.oss',
+            `${this.name}@${this.version}`
+          );
+          if (!fs.existsSync(ossTempDir)) {
+            fs.mkdirSync(ossTempDir, {
+              recursive: true,
+            });
+          } else {
+            fs.rmSync(ossTempDir, { recursive: true });
+          }
+          const templateFilePath = path.resolve(ossTempDir, 'index.html');
+          fs.writeFileSync(templateFilePath, response, 'utf8');
+          log.success('模板文件下载成功');
+          const uploadCmd = `scp -r ${templateFilePath} ${this.sshUser}@${this.sshIp}:${this.sshPath}`;
+          const ret = childProcess.execSync(uploadCmd);
+          if (ret) {
+            log.success('模板文件上传成功');
+          }
+          fs.rmSync(ossTempDir, { recursive: true });
+        }
+      }
+    }
+  }
+
   // 自动生成远程仓库分支
   runCreateTagTask() {
     const delay = (fn) => setTimeout(fn, 1000);

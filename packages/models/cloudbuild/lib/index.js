@@ -120,6 +120,7 @@ class CloudBuild {
     });
   }
   async prepare() {
+    log.success('云发布准备', this.prod);
     // 判断是否处于正式发布
     if (this.prod) {
       // 1.获取OSS文件
@@ -133,7 +134,7 @@ class CloudBuild {
         },
       });
       // 2.判断当前项目的OSS文件是否存在
-      if (ossProject.code === 0 && ossProject.data.length > 0) {
+      if (ossProject.code === 1 && ossProject.data.length > 0) {
         // 3.询问用户是否进行覆盖安装
         const cover = (
           await inquirer.prompt({

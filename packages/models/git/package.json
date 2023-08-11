@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@power-cli/log": "file:../../utils/log",
+    "@power-cli/request": "file:../../utils/request",
     "axios": "^1.4.0",
     "inquirer": "8.2.4",
     "listr": "^0.14.3",
